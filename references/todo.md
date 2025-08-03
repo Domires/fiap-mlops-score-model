@@ -21,7 +21,7 @@ Repositórios de referência para consulta:
 Observações:
 - Por enquanto iremos focar somente no modelo, e não no front-end e nem no back-end (API)
 - O Modelo será um modelo de classificação de score de crédito
-- Existem arquivos com prefixo "ref_", isso significa que são somente arquivos que foram usados para outro propósito, mas podem servir como referência para a construção desse trabalho
+- Podem existir arquivos com prefixo "ref_", isso significa que são somente arquivos que foram usados para outro propósito, mas podem servir como referência para a construção desse trabalho
 - Na pasta references existem arquivos de referência para construção do trabalho 
 
 Dataset à ser utilizado no trabalho de MLOPS:
