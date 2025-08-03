@@ -472,10 +472,10 @@ def main_random_forest_only():
 
 
 def main():
-    """Função principal para treinamento APENAS do Random Forest com MLflow"""
+    """Função principal para treinamento APENAS do Random Forest com MLflow simplificado"""
     import dagshub
     
-    # Configuração do MLflow (sem autolog para controle manual)
+    # Configuração do MLflow
     dagshub.init(repo_owner="domires", repo_name="fiap-mlops-score-model", mlflow=True)
     mlflow.set_tracking_uri("https://dagshub.com/domires/fiap-mlops-score-model.mlflow")
     
@@ -526,17 +526,68 @@ def main():
     print(f"   X_train: {X_train.shape}, y_train: {y_train.shape}")
     print(f"   X_val: {X_val.shape}, y_val: {y_val.shape}")
     
-    # Treinando APENAS Random Forest COM MLflow
-    try:
+    # TREINAMENTO SIMPLIFICADO SEM PROBLEMAS DE ENDPOINT
+    with mlflow.start_run(run_name="Random Forest - Credit Score (Único Modelo)"):
         print("\n🚀 Treinando Random Forest...")
-        model, metrics = train_random_forest(X_train, y_train, X_val, y_val, preprocessor)
         
-        # Salvar modelo localmente também
+        # Criar o pipeline completo
+        from sklearn.ensemble import RandomForestClassifier
+        from sklearn.pipeline import Pipeline
+        
+        # Parâmetros ótimos baseados na referência
+        rf_params = {
+            'n_estimators': 150,
+            'max_depth': 30,
+            'min_samples_split': 2,
+            'min_samples_leaf': 1,
+            'random_state': 42,
+            'n_jobs': -1
+        }
+        
+        # Log dos parâmetros
+        for param, value in rf_params.items():
+            mlflow.log_param(f"rf_{param}", value)
+        
+        # Criar pipeline
+        pipeline = Pipeline([
+            ('preprocessor', preprocessor),
+            ('classifier', RandomForestClassifier(**rf_params))
+        ])
+        
+        # Treinar o modelo
+        pipeline.fit(X_train, y_train)
+        
+        # Fazer predições
+        y_pred = pipeline.predict(X_val)
+        y_pred_proba = pipeline.predict_proba(X_val)
+        
+        # Calcular métricas
+        from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, roc_auc_score
+        
+        accuracy = accuracy_score(y_val, y_pred)
+        precision = precision_score(y_val, y_pred, average='weighted')
+        recall = recall_score(y_val, y_pred, average='weighted')
+        f1 = f1_score(y_val, y_pred, average='weighted')
+        
+        # AUC-ROC (multiclass)
+        if len(set(y_val)) > 2:
+            auc_roc = roc_auc_score(y_val, y_pred_proba, multi_class='ovr', average='weighted')
+        else:
+            auc_roc = roc_auc_score(y_val, y_pred_proba[:, 1])
+        
+        # Log das métricas
+        mlflow.log_metric("accuracy", accuracy)
+        mlflow.log_metric("precision", precision)
+        mlflow.log_metric("recall", recall)
+        mlflow.log_metric("f1_score", f1)
+        mlflow.log_metric("auc_roc", auc_roc)
+        
+        # Salvar modelo localmente (sem usar mlflow.sklearn.log_model que dá erro)
         import joblib
         import os
         os.makedirs('models', exist_ok=True)
         model_path = 'models/random_forest_credit_score.pkl'
-        joblib.dump(model, model_path)
+        joblib.dump(pipeline, model_path)
         
         if le:
             encoder_path = 'models/label_encoder.pkl'
@@ -547,14 +598,17 @@ def main():
         
         # Resumo dos resultados
         print("\n=== RESULTADOS DO RANDOM FOREST ===")
-        for metric_name, value in metrics.items():
-            print(f"  {metric_name}: {value:.4f}")
+        print(f"  accuracy: {accuracy:.4f}")
+        print(f"  precision: {precision:.4f}")
+        print(f"  recall: {recall:.4f}")
+        print(f"  f1_score: {f1:.4f}")
+        print(f"  auc_roc: {auc_roc:.4f}")
         
-        print("\n✅ Treinamento concluído! Modelo registrado no MLflow.")
+        print("\n✅ Treinamento concluído!")
+        print("📊 Métricas registradas no MLflow (sem problemas de endpoint)")
+        print("💾 Modelo salvo localmente")
         
-    except Exception as e:
-        print(f"Erro no treinamento do Random Forest: {e}")
-        raise
+    return pipeline
 
 
 if __name__ == "__main__":
