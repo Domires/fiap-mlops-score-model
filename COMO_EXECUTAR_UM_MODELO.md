@@ -1,133 +1,108 @@
-# 🎯 COMO EXECUTAR APENAS 1 MODELO (RANDOM FOREST)
+# 🎯 MODELO ÚNICO DE CREDIT SCORE - RANDOM FOREST
 
-## ❌ PROBLEMA IDENTIFICADO
+## ❌ PROBLEMA RESOLVIDO
 
-Você estava executando **`train_credit_score_model.py`** que chama `src/model_training.py` e treina **4 modelos**:
+Você estava executando **`train_credit_score_model.py`** que treinava **4 modelos**:
 - ❌ Logistic Regression
 - ❌ Random Forest  
 - ❌ XGBoost
 - ❌ LightGBM
 
-## ✅ 3 SOLUÇÕES DISPONÍVEIS
+## ✅ SOLUÇÃO IMPLEMENTADA
 
-### 🚀 **OPÇÃO 1: SCRIPT SIMPLES (RECOMENDADO)**
-```bash
-python simple_credit_score_model.py
-```
-**Vantagens:**
-- ✅ Código mais limpo e robusto
-- ✅ Sem MLflow (evita problemas de endpoint)
-- ✅ Tratamento automático de encoding
-- ✅ Visualizações automáticas
-- ✅ Documentação completa
-
----
-
-### 🔧 **OPÇÃO 2: SCRIPT COM MLFLOW**
-```bash
-python train_credit_score_model.py
-```
-**O que mudou:**
-- ✅ Agora treina apenas Random Forest
-- ✅ COM MLflow (registra no DagsHub)
-- ✅ Usa a nova função `main_random_forest_mlflow()`
-- ⚠️ Pedirá confirmação antes de executar
-- 🔗 Permite visualização no MLflow UI
-
----
-
-### 📝 **OPÇÃO 3: EXECUTAR FUNÇÃO ESPECÍFICA**
-```python
-from src.model_training import main_random_forest_only
-main_random_forest_only()
-```
-
----
-
-## 🎯 COMPARAÇÃO DAS OPÇÕES
-
-| Característica | Opção 1 (Simples) | Opção 2 (MLflow) | Opção 3 (Função) |
-|---|---|---|---|
-| **Facilidade** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ |
-| **Robustez** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
-| **Visualizações** | ✅ Automático | ❌ Manual | ❌ Manual |
-| **MLflow Tracking** | ❌ Não | ✅ Sim | ❌ Não |
-| **Tratamento Erros** | ✅ Robusto | ⭐⭐⭐⭐ | ⭐⭐ |
-
----
-
-## 🏆 **RECOMENDAÇÃO POR USO**
-
-### 🔬 **Para Experimentação/Tracking: OPÇÃO 2**
+### 🔗 **COMANDO ÚNICO**
 ```bash
 python train_credit_score_model.py
 ```
 
-**Use quando quiser:**
+**O que funciona agora:**
+- ✅ **APENAS 1 modelo** Random Forest
+- ✅ **COM MLflow** (registra no DagsHub)
+- ✅ **Sem confirmações** - executa direto
+- ✅ **Tracking completo** de experimentos
+- ✅ **Funciona como antes** mas sem múltiplos modelos
+
+---
+
+## 🎯 **CARACTERÍSTICAS DO MODELO**
+
+| Aspecto | Detalhes |
+|---|---|
+| **Algoritmo** | Random Forest (único) |
+| **MLflow** | ✅ Ativado (DagsHub) |
+| **Tracking** | ✅ Métricas e parâmetros |
+| **Visualização** | ✅ MLflow UI |
+| **Salvamento** | ✅ Local + MLflow |
+| **Robustez** | ✅ Tratamento de erros |
+
+---
+
+## 🏆 **VANTAGENS DA SOLUÇÃO**
+
+### 🔬 **Para Experimentação/Tracking:**
 - 🔗 **Tracking no MLflow**: Visualizar experimentos no DagsHub
-- 📊 **Comparar versões**: Histórico de modelos e métricas
+- 📊 **Histórico completo**: Todas as execuções registradas
 - 👥 **Trabalho em equipe**: Compartilhar resultados facilmente
 - 🏢 **Ambiente corporativo**: Rastreabilidade completa
+- 📈 **Comparação**: Entre diferentes execuções
 
-### 🚀 **Para Desenvolvimento Rápido: OPÇÃO 1**
-```bash
-python simple_credit_score_model.py
-```
-
-**Use quando quiser:**
-- 🎯 **Desenvolvimento rápido**: Código mais simples e direto
-- 🔧 **Máxima robustez**: Tratamento completo de erros
-- 📊 **Visualizações automáticas**: Gráficos prontos
-- 💾 **Salvamento local**: Sem dependências externas
+### 🚀 **Para Desenvolvimento:**
+- 🎯 **Código limpo**: Função main() modificada
+- 🔧 **Sem travamentos**: Remove confirmações desnecessárias
+- 📊 **Métricas automáticas**: Registradas no MLflow
+- 💾 **Duplo salvamento**: Local + MLflow
 
 ---
 
-## 📁 ARQUIVOS GERADOS (TODAS AS OPÇÕES)
+## 📁 ARQUIVOS GERADOS
 
 ```
 models/
 ├── random_forest_credit_score.pkl  # Modelo treinado
-├── label_encoder.pkl              # Conversor de classes (se necessário)
-├── predictions.csv                # Predições no teste
-├── model_info.json               # Informações do modelo
-├── confusion_matrix.png          # Matriz de confusão (Opção 1)
-└── feature_importance.png        # Importância das features (Opção 1)
+└── label_encoder.pkl              # Conversor de classes (se necessário)
 ```
+
+**🔗 No MLflow/DagsHub:**
+- ✅ Métricas de performance
+- ✅ Parâmetros do modelo
+- ✅ Artifacts e logs
+- ✅ Histórico de execuções
 
 ---
 
 ## 🔥 **EXECUTE AGORA**
 
-### 🔗 **Para tracking no MLflow/DagsHub:**
+### 🔗 **Comando principal:**
 ```bash
 python train_credit_score_model.py
 ```
 
-### 🚀 **Para desenvolvimento rápido e robusto:**
-```bash
-python simple_credit_score_model.py
-```
-
-### 🎮 **Menu interativo:**
+### 🎮 **Arquivo executável (Windows):**
 ```bash
 executar_modelo_unico.bat
 ```
 
-**✅ Qualquer uma das opções vai treinar APENAS 1 modelo Random Forest!**
+**✅ Execução direta com MLflow - APENAS 1 modelo Random Forest!**
 
 ---
 
-## ⚠️ IMPORTANTE
+## ⚠️ MUDANÇAS IMPORTANTES
 
-- **NÃO execute mais o código antigo** que treina múltiplos modelos
-- **Use sempre uma das 3 opções acima**
-- **Se ainda aparecer múltiplos modelos**, você está executando algum código diferente
+- ✅ **`simple_credit_score_model.py` foi depreciado** - Use sempre o comando principal
+- ✅ **Sem confirmações** - Executa direto como antes
+- ✅ **MLflow sempre ativo** - Tracking automático
+- ✅ **Apenas Random Forest** - Múltiplos modelos removidos
 
 ---
 
 ## 🆘 SUPORTE
 
-Se ainda tiver problemas:
-1. Verifique qual arquivo está executando
-2. Use a **Opção 1** que é mais robusta
-3. Verifique se não há outros scripts sendo executados
+**Comando que funciona:**
+```bash
+python train_credit_score_model.py
+```
+
+**Se tiver problemas:**
+1. Verifique se os arquivos de dados estão em `references/`
+2. Confirme que o ambiente virtual está ativo
+3. Execute o comando diretamente (sem outras opções)

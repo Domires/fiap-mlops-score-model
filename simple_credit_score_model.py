@@ -1,5 +1,19 @@
-# MODELO ÚNICO DE CREDIT SCORE - RANDOM FOREST
-# Este script treina APENAS 1 MODELO Random Forest para classificação de score de crédito
+# ⚠️ ARQUIVO DEPRECIADO - USE: python train_credit_score_model.py
+# 
+# Este arquivo foi substituído pelo train_credit_score_model.py que:
+# - Treina APENAS 1 modelo Random Forest
+# - Usa MLflow para tracking
+# - Mantém a funcionalidade original
+#
+# EXECUTE: python train_credit_score_model.py
+
+import sys
+print("⚠️ AVISO: Este arquivo foi depreciado!")
+print("🔗 Use: python train_credit_score_model.py")
+print("   (Treina apenas Random Forest com MLflow)")
+sys.exit(1)
+
+# CÓDIGO DEPRECIADO ABAIXO - NÃO SERÁ EXECUTADO
 
 import pandas as pd
 import numpy as np

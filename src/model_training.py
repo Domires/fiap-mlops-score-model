@@ -472,78 +472,89 @@ def main_random_forest_only():
 
 
 def main():
-    """Função principal para treinamento de modelos (VERSÃO ORIGINAL COM MÚLTIPLOS MODELOS)"""
-    print("⚠️ AVISO: Esta função treina múltiplos modelos!")
-    print("💡 RECOMENDAÇÃO: Use main_random_forest_only() para treinar apenas 1 modelo")
-    
+    """Função principal para treinamento APENAS do Random Forest com MLflow"""
     import dagshub
     
-    # Configuração do MLflow
+    # Configuração do MLflow (sem autolog para controle manual)
     dagshub.init(repo_owner="domires", repo_name="fiap-mlops-score-model", mlflow=True)
     mlflow.set_tracking_uri("https://dagshub.com/domires/fiap-mlops-score-model.mlflow")
-    mlflow.autolog()
     
-    # Carregando e pré-processando dados
-    train_processed, test_processed, features = load_and_preprocess_data(
-        'data/raw/train.csv',
-        'data/raw/test.csv'
-    )
+    try:
+        # Carregando dados usando caminhos alternativos
+        try:
+            train_processed, test_processed, features = load_and_preprocess_data(
+                'references/exemplo_train.csv',
+                'references/exemplo_test.csv'
+            )
+        except:
+            # Fallback para outros caminhos possíveis
+            train_processed, test_processed, features = load_and_preprocess_data(
+                'data/raw/train.csv',
+                'data/raw/test.csv'
+            )
+    except Exception as e:
+        print(f"❌ Erro ao carregar dados: {e}")
+        print("💡 Verifique se os arquivos de dados estão disponíveis")
+        return
     
     # Separando features e target
     X = train_processed[features]
     y = train_processed['Credit_Score']
     
+    # Tratamento para target com valores NaN
+    if y.isna().sum() > 0:
+        print(f"🔄 Convertendo {y.isna().sum()} valores NaN no target para 'Unknown'")
+        y = y.fillna('Unknown')
+    
+    # Tratamento para target string (conversão automática)
+    from sklearn.preprocessing import LabelEncoder
+    if y.dtype == 'object':
+        le = LabelEncoder()
+        y_encoded = le.fit_transform(y)
+        print(f"🔄 Target convertido: {le.classes_} → {range(len(le.classes_))}")
+    else:
+        y_encoded = y
+        le = None
+    
     # Criando pipeline de pré-processamento
     preprocessor = create_preprocessing_pipeline(X)
     
     # Dividindo dados para treino e validação
-    X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.3, random_state=42, stratify=y)
+    X_train, X_val, y_train, y_val = train_test_split(X, y_encoded, test_size=0.3, random_state=42, stratify=y_encoded)
     
-    print(f"Iniciando treinamento de modelos...")
-    print(f"X_train: {X_train.shape}, y_train: {y_train.shape}")
-    print(f"X_val: {X_val.shape}, y_val: {y_val.shape}")
+    print(f"📊 Dados preparados:")
+    print(f"   X_train: {X_train.shape}, y_train: {y_train.shape}")
+    print(f"   X_val: {X_val.shape}, y_val: {y_val.shape}")
     
-    # Lista para armazenar resultados
-    results = {}
-    
-    # Treinando modelos
+    # Treinando APENAS Random Forest COM MLflow
     try:
-        print("\n--- Treinando Logistic Regression ---")
-        model, metrics = train_logistic_regression(X_train, y_train, X_val, y_val, preprocessor)
-        results['logistic_regression'] = metrics
-    except Exception as e:
-        print(f"Erro no treinamento da Regressão Logística: {e}")
-    
-    try:
-        print("\n--- Treinando Random Forest ---")
+        print("\n🚀 Treinando Random Forest...")
         model, metrics = train_random_forest(X_train, y_train, X_val, y_val, preprocessor)
-        results['random_forest'] = metrics
-    except Exception as e:
-        print(f"Erro no treinamento do Random Forest: {e}")
-    
-    try:
-        print("\n--- Treinando XGBoost ---")
-        model, metrics = train_xgboost(X_train, y_train, X_val, y_val, preprocessor)
-        results['xgboost'] = metrics
-    except Exception as e:
-        print(f"Erro no treinamento do XGBoost: {e}")
-    
-    try:
-        print("\n--- Treinando LightGBM ---")
-        model, metrics = train_lightgbm(X_train, y_train, X_val, y_val, preprocessor)
-        results['lightgbm'] = metrics
-    except Exception as e:
-        print(f"Erro no treinamento do LightGBM: {e}")
-    
-    # Resumo dos resultados
-    print("\n=== RESUMO DOS RESULTADOS ===")
-    for model_name, metrics in results.items():
-        print(f"{model_name.upper()}:")
+        
+        # Salvar modelo localmente também
+        import joblib
+        import os
+        os.makedirs('models', exist_ok=True)
+        model_path = 'models/random_forest_credit_score.pkl'
+        joblib.dump(model, model_path)
+        
+        if le:
+            encoder_path = 'models/label_encoder.pkl'
+            joblib.dump(le, encoder_path)
+            print(f"✅ Label encoder salvo: {encoder_path}")
+        
+        print(f"✅ Modelo salvo localmente: {model_path}")
+        
+        # Resumo dos resultados
+        print("\n=== RESULTADOS DO RANDOM FOREST ===")
         for metric_name, value in metrics.items():
             print(f"  {metric_name}: {value:.4f}")
-        print()
-    
-    print("Treinamento concluído! Verifique os resultados no MLflow UI.")
+        
+        print("\n✅ Treinamento concluído! Modelo registrado no MLflow.")
+        
+    except Exception as e:
+        print(f"Erro no treinamento do Random Forest: {e}")
+        raise
 
 
 if __name__ == "__main__":

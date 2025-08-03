@@ -35,15 +35,15 @@ Criei o arquivo **`simple_credit_score_model.py`** que resolve TODOS os problema
 
 ## 🚀 COMO USAR
 
-### 1. Execute o script diretamente:
+### Execute o comando principal:
 ```bash
 cd /d%3A/repos/MLOPS/modelo
-python simple_credit_score_model.py
+python train_credit_score_model.py
 ```
 
-### 2. Ou pelo Jupyter:
-```python
-exec(open('simple_credit_score_model.py').read())
+### Ou use o arquivo executável:
+```bash
+executar_modelo_unico.bat
 ```
 
 ## 📁 ARQUIVOS GERADOS
