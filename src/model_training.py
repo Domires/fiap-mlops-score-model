@@ -240,8 +240,112 @@ def train_lightgbm(X_train, y_train, X_val, y_val, preprocessor):
         return best_pipeline, metrics
 
 
+def main_random_forest_only():
+    """Função para treinamento APENAS do Random Forest (SEM MLflow)"""
+    import joblib
+    import os
+    
+    print("🎯 TREINAMENTO ÚNICO - RANDOM FOREST")
+    print("✅ SEM MLflow (evita problemas de endpoint)")
+    print("✅ SEM múltiplos modelos")
+    
+    try:
+        # Carregando dados usando caminhos alternativos
+        try:
+            train_processed, test_processed, features = load_and_preprocess_data(
+                'references/exemplo_train.csv',
+                'references/exemplo_test.csv'
+            )
+        except:
+            # Fallback para outros caminhos possíveis
+            train_processed, test_processed, features = load_and_preprocess_data(
+                'data/raw/train.csv',
+                'data/raw/test.csv'
+            )
+    except Exception as e:
+        print(f"❌ Erro ao carregar dados: {e}")
+        print("💡 Verifique se os arquivos de dados estão disponíveis")
+        return
+    
+    # Separando features e target
+    X = train_processed[features]
+    y = train_processed['Credit_Score']
+    
+    # Tratamento para target string (conversão automática)
+    from sklearn.preprocessing import LabelEncoder
+    if y.dtype == 'object':
+        le = LabelEncoder()
+        y_encoded = le.fit_transform(y)
+        print(f"🔄 Target convertido: {le.classes_} → {range(len(le.classes_))}")
+    else:
+        y_encoded = y
+        le = None
+    
+    # Criando pipeline de pré-processamento
+    preprocessor = create_preprocessing_pipeline(X)
+    
+    # Dividindo dados para treino e validação
+    X_train, X_val, y_train, y_val = train_test_split(X, y_encoded, test_size=0.3, random_state=42, stratify=y_encoded)
+    
+    print(f"📊 Dados preparados:")
+    print(f"   Treino: {X_train.shape}")
+    print(f"   Validação: {X_val.shape}")
+    
+    # Treinando APENAS Random Forest (sem MLflow)
+    print("\n🚀 Treinando Random Forest...")
+    
+    from sklearn.pipeline import Pipeline
+    rf_pipeline = Pipeline(steps=[
+        ('preprocessor', preprocessor),
+        ('classifier', RandomForestClassifier(
+            n_estimators=150,
+            max_depth=30,
+            min_samples_split=2,
+            min_samples_leaf=1,
+            max_features='sqrt',
+            random_state=42,
+            class_weight='balanced',
+            n_jobs=-1
+        ))
+    ])
+    
+    # Treinar modelo
+    rf_pipeline.fit(X_train, y_train)
+    
+    # Fazer predições
+    y_pred = rf_pipeline.predict(X_val)
+    
+    # Calcular métricas
+    accuracy = accuracy_score(y_val, y_pred)
+    precision = precision_score(y_val, y_pred, average='weighted')
+    recall = recall_score(y_val, y_pred, average='weighted')
+    f1 = f1_score(y_val, y_pred, average='weighted')
+    
+    print(f"\n📊 RESULTADOS DO RANDOM FOREST:")
+    print(f"   🎯 Acurácia:  {accuracy:.4f} ({accuracy*100:.2f}%)")
+    print(f"   🎯 Precisão:  {precision:.4f}")
+    print(f"   🎯 Recall:    {recall:.4f}")
+    print(f"   🎯 F1-Score:  {f1:.4f}")
+    
+    # Salvar modelo
+    os.makedirs('models', exist_ok=True)
+    model_path = 'models/random_forest_credit_score.pkl'
+    joblib.dump(rf_pipeline, model_path)
+    
+    if le:
+        encoder_path = 'models/label_encoder.pkl'
+        joblib.dump(le, encoder_path)
+        print(f"✅ Label encoder salvo: {encoder_path}")
+    
+    print(f"✅ Modelo salvo: {model_path}")
+    print(f"✅ APENAS 1 modelo Random Forest foi treinado!")
+
+
 def main():
-    """Função principal para treinamento de modelos"""
+    """Função principal para treinamento de modelos (VERSÃO ORIGINAL COM MÚLTIPLOS MODELOS)"""
+    print("⚠️ AVISO: Esta função treina múltiplos modelos!")
+    print("💡 RECOMENDAÇÃO: Use main_random_forest_only() para treinar apenas 1 modelo")
+    
     import dagshub
     
     # Configuração do MLflow
