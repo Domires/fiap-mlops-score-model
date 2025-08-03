@@ -251,8 +251,8 @@ def main():
     
     # Carregando e pré-processando dados
     train_processed, test_processed, features = load_and_preprocess_data(
-        '../references/exemplo_train.csv',
-        '../references/exemplo_test.csv'
+        'data/raw/train.csv',
+        'data/raw/test.csv'
     )
     
     # Separando features e target

@@ -136,8 +136,8 @@ def load_and_preprocess_data(train_path, test_path=None):
 if __name__ == "__main__":
     # Teste do módulo
     train_processed, test_processed, features = load_and_preprocess_data(
-        '../references/exemplo_train.csv',
-        '../references/exemplo_test.csv'
+        'data/raw/train.csv',
+        'data/raw/test.csv'
     )
     
     print(f"Dados de treino processados: {train_processed.shape}")
