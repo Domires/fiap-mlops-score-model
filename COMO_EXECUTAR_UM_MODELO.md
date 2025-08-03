@@ -23,15 +23,16 @@ python simple_credit_score_model.py
 
 ---
 
-### 🔧 **OPÇÃO 2: SCRIPT ORIGINAL MODIFICADO**
+### 🔧 **OPÇÃO 2: SCRIPT COM MLFLOW**
 ```bash
 python train_credit_score_model.py
 ```
 **O que mudou:**
 - ✅ Agora treina apenas Random Forest
-- ✅ Sem MLflow para evitar erros
-- ✅ Usa a nova função `main_random_forest_only()`
+- ✅ COM MLflow (registra no DagsHub)
+- ✅ Usa a nova função `main_random_forest_mlflow()`
 - ⚠️ Pedirá confirmação antes de executar
+- 🔗 Permite visualização no MLflow UI
 
 ---
 
@@ -45,29 +46,39 @@ main_random_forest_only()
 
 ## 🎯 COMPARAÇÃO DAS OPÇÕES
 
-| Característica | Opção 1 (Simples) | Opção 2 (Modificado) | Opção 3 (Função) |
+| Característica | Opção 1 (Simples) | Opção 2 (MLflow) | Opção 3 (Função) |
 |---|---|---|---|
-| **Facilidade** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐ |
-| **Robustez** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐ | ⭐⭐⭐ |
+| **Facilidade** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐ |
+| **Robustez** | ⭐⭐⭐⭐⭐ | ⭐⭐⭐⭐ | ⭐⭐⭐ |
 | **Visualizações** | ✅ Automático | ❌ Manual | ❌ Manual |
-| **Documentação** | ✅ Completa | ⭐⭐ | ⭐ |
-| **Tratamento Erros** | ✅ Robusto | ⭐⭐⭐ | ⭐⭐ |
+| **MLflow Tracking** | ❌ Não | ✅ Sim | ❌ Não |
+| **Tratamento Erros** | ✅ Robusto | ⭐⭐⭐⭐ | ⭐⭐ |
 
 ---
 
-## 🏆 **RECOMENDAÇÃO FINAL**
+## 🏆 **RECOMENDAÇÃO POR USO**
 
-### Use a **OPÇÃO 1**:
+### 🔬 **Para Experimentação/Tracking: OPÇÃO 2**
+```bash
+python train_credit_score_model.py
+```
+
+**Use quando quiser:**
+- 🔗 **Tracking no MLflow**: Visualizar experimentos no DagsHub
+- 📊 **Comparar versões**: Histórico de modelos e métricas
+- 👥 **Trabalho em equipe**: Compartilhar resultados facilmente
+- 🏢 **Ambiente corporativo**: Rastreabilidade completa
+
+### 🚀 **Para Desenvolvimento Rápido: OPÇÃO 1**
 ```bash
 python simple_credit_score_model.py
 ```
 
-**Por quê?**
-- 🎯 **Mais simples**: Código dedicado apenas ao Random Forest
-- 🔧 **Mais robusto**: Tratamento completo de erros e edge cases
-- 📊 **Visualizações**: Gráficos automáticos de matriz de confusão e feature importance
-- 💾 **Salvamento completo**: Modelo + encoder + predições + info
-- 📝 **Bem documentado**: Output detalhado e explicativo
+**Use quando quiser:**
+- 🎯 **Desenvolvimento rápido**: Código mais simples e direto
+- 🔧 **Máxima robustez**: Tratamento completo de erros
+- 📊 **Visualizações automáticas**: Gráficos prontos
+- 💾 **Salvamento local**: Sem dependências externas
 
 ---
 
@@ -87,12 +98,19 @@ models/
 
 ## 🔥 **EXECUTE AGORA**
 
+### 🔗 **Para tracking no MLflow/DagsHub:**
 ```bash
-# RECOMENDADO
-python simple_credit_score_model.py
-
-# OU (se preferir usar os arquivos originais modificados)
 python train_credit_score_model.py
+```
+
+### 🚀 **Para desenvolvimento rápido e robusto:**
+```bash
+python simple_credit_score_model.py
+```
+
+### 🎮 **Menu interativo:**
+```bash
+executar_modelo_unico.bat
 ```
 
 **✅ Qualquer uma das opções vai treinar APENAS 1 modelo Random Forest!**

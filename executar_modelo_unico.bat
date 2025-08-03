@@ -5,12 +5,12 @@ echo ================================================================
 echo.
 echo ❌ PROBLEMA RESOLVIDO: Múltiplos modelos
 echo ✅ AGORA: Apenas 1 modelo Random Forest
-echo ✅ SEM: MLflow (evita problemas de endpoint)
+echo ✅ Duas opções: COM ou SEM MLflow
 echo.
 echo Escolha uma opção:
 echo.
-echo 1) Script Simples (RECOMENDADO) - simple_credit_score_model.py
-echo 2) Script Original Modificado - train_credit_score_model.py
+echo 1) Script Simples (SEM MLflow) - simple_credit_score_model.py
+echo 2) Script com MLflow (DagsHub) - train_credit_score_model.py
 echo 3) Sair
 echo.
 set /p choice="Digite sua escolha (1, 2 ou 3): "
@@ -41,12 +41,13 @@ exit /b 1
 :script_simples
 echo.
 echo ================================================================
-echo 🚀 EXECUTANDO SCRIPT SIMPLES - RANDOM FOREST
+echo 🚀 EXECUTANDO SCRIPT SIMPLES - SEM MLFLOW
 echo ================================================================
 echo.
 echo ✅ Mais robusto e completo
 echo ✅ Visualizações automáticas
-echo ✅ Tratamento completo de erros
+echo ✅ SEM MLflow (evita problemas de endpoint)
+echo ✅ Salvamento local apenas
 echo.
 
 REM Ativar ambiente virtual se existir
@@ -61,11 +62,13 @@ goto :resultado
 :script_original
 echo.
 echo ================================================================
-echo 🔧 EXECUTANDO SCRIPT ORIGINAL MODIFICADO
+echo 🔗 EXECUTANDO SCRIPT COM MLFLOW (DAGSHUB)
 echo ================================================================
 echo.
-echo ⚠️ Versão modificada do arquivo original
 echo ✅ Treina apenas Random Forest
+echo ✅ Registra no MLflow/DagsHub
+echo ✅ Sem múltiplos modelos
+echo 🔗 Permite visualização no MLflow UI
 echo.
 
 REM Ativar ambiente virtual se existir
@@ -92,5 +95,9 @@ echo    - confusion_matrix.png (matriz de confusão - se script simples)
 echo    - feature_importance.png (importância das features - se script simples)
 echo.
 echo 🎯 CONFIRMADO: Apenas 1 modelo Random Forest foi treinado!
+echo.
+echo 💡 DIFERENÇA ENTRE AS OPÇÕES:
+echo    Opção 1: Mais robusta, sem MLflow, visualizações automáticas
+echo    Opção 2: Registra no MLflow/DagsHub para tracking de experimentos
 echo.
 pause
