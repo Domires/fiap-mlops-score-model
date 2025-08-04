@@ -52,6 +52,18 @@ Acesse o MLflow UI para comparar os modelos:
 mlflow ui
 ```
 
+## Interface MLflow
+
+### Rastreamento de Experimentos
+O MLflow registra automaticamente todos os experimentos e métricas dos modelos treinados:
+
+![Tela de Experimentos MLflow](references/experimentos.png)
+
+### Versionamento de Modelos
+Os modelos são versionados e registrados no MLflow Model Registry:
+
+![Tela de Modelos Registrados MLflow](references/versionamento.png)
+
 ## Estrutura dos Dados
 
 ### Features Principais
