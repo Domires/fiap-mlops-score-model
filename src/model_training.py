@@ -474,6 +474,8 @@ def main_random_forest_only():
 def main():
     """Função principal para treinamento APENAS do Random Forest com MLflow simplificado"""
     import dagshub
+    import mlflow
+    import mlflow.pyfunc
     
     # Configuração do MLflow
     dagshub.init(repo_owner="domires", repo_name="fiap-mlops-score-model", mlflow=True)
@@ -600,7 +602,6 @@ def main():
         # Registrar modelo no MLflow como artifact (compatível com DagsHub)
         try:
             # Método 1: Registrar como pyfunc (mais compatível)
-            import mlflow.pyfunc
             
             # Criar wrapper customizado para o modelo
             class ModelWrapper(mlflow.pyfunc.PythonModel):
