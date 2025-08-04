@@ -25,8 +25,6 @@ def preprocess_credit_score_data(df, is_training=True):
     # Cópia do dataframe
     df_processed = df.copy()
     
-    print(f"📊 Iniciando pré-processamento: {df_processed.shape}")
-    
     # 1. Removendo colunas desnecessárias e com muitos nulos
     columns_to_drop = ['ID', 'Customer_ID', 'Name', 'SSN']
     
@@ -36,7 +34,6 @@ def preprocess_credit_score_data(df, is_training=True):
     columns_to_drop.extend(high_null_cols)
     
     df_processed = df_processed.drop(columns=[col for col in columns_to_drop if col in df_processed.columns])
-    print(f"🗑️ Removidas {len([col for col in columns_to_drop if col in df_processed.columns])} colunas com muitos nulos")
     
     # 2. Separar colunas numéricas e categóricas para tratamento específico
     numeric_columns = df_processed.select_dtypes(include=[np.number]).columns.tolist()
@@ -78,9 +75,6 @@ def preprocess_credit_score_data(df, is_training=True):
                 fill_val = 'Unknown'
             df_processed[col] = df_processed[col].fillna(fill_val)
     
-    print(f"✅ Pré-processamento concluído: {df_processed.shape}")
-    print(f"✅ Valores nulos restantes: {df_processed.isnull().sum().sum()}")
-    
     return df_processed
 
 
@@ -94,14 +88,9 @@ def create_preprocessing_pipeline(X):
     Returns:
         ColumnTransformer: Pipeline de pré-processamento
     """
-    print(f"🔧 Criando pipeline para {X.shape[1]} features")
-    
     # Identificando colunas numéricas e categóricas
     numeric_features = X.select_dtypes(include=[np.number]).columns.tolist()
     categorical_features = X.select_dtypes(include=[object]).columns.tolist()
-    
-    print(f"📊 Features numéricas: {len(numeric_features)}")
-    print(f"📊 Features categóricas: {len(categorical_features)}")
     
     # Pipeline robusto para features numéricas
     numeric_transformer = Pipeline(steps=[
@@ -120,11 +109,9 @@ def create_preprocessing_pipeline(X):
     
     if len(numeric_features) > 0:
         transformers.append(('num', numeric_transformer, numeric_features))
-        print(f"✅ Pipeline numérico criado para: {numeric_features}")
     
     if len(categorical_features) > 0:
         transformers.append(('cat', categorical_transformer, categorical_features))
-        print(f"✅ Pipeline categórico criado para: {categorical_features}")
     
     if len(transformers) == 0:
         raise ValueError("Nenhuma feature válida encontrada para criar o pipeline!")
@@ -135,7 +122,6 @@ def create_preprocessing_pipeline(X):
         remainder='drop'  # Remove colunas não especificadas
     )
     
-    print(f"🎯 Pipeline de pré-processamento criado com sucesso!")
     return preprocessor
 
 
@@ -150,19 +136,15 @@ def load_and_preprocess_data(train_path, test_path=None):
     Returns:
         tuple: (train_processed, test_processed, features)
     """
-    print(f"📂 Carregando dados de: {train_path}")
-    
     # Carregando dados
     train_df = pd.read_csv(train_path)
     
     if test_path:
         test_df = pd.read_csv(test_path)
-        print(f"📂 Carregando dados de teste de: {test_path}")
     else:
         test_df = None
     
     # Pré-processando dados
-    print("\n🔄 Pré-processando dados de treino...")
     train_processed = preprocess_credit_score_data(train_df, is_training=True)
     
     # Tratamento robusto do target (Credit_Score)
@@ -170,14 +152,10 @@ def load_and_preprocess_data(train_path, test_path=None):
         # Verificar se há valores nulos no target
         null_count = train_processed['Credit_Score'].isnull().sum()
         if null_count > 0:
-            print(f"⚠️ Encontrados {null_count} valores nulos no target")
             # Remover linhas com target nulo (dados inválidos para treinamento)
             train_processed = train_processed.dropna(subset=['Credit_Score'])
-            print(f"🗑️ Removidas {null_count} linhas com target nulo")
-            print(f"📊 Dataset de treino final: {train_processed.shape}")
     
     if test_df is not None:
-        print("\n🔄 Pré-processando dados de teste...")
         test_processed = preprocess_credit_score_data(test_df, is_training=False)
     else:
         test_processed = None
@@ -186,9 +164,6 @@ def load_and_preprocess_data(train_path, test_path=None):
     features = list(train_processed.columns)
     if 'Credit_Score' in features:
         features.remove('Credit_Score')
-    
-    print(f"\n✅ Features disponíveis: {len(features)}")
-    print(f"🎯 Target: Credit_Score")
     
     return train_processed, test_processed, features
 

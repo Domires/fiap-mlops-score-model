@@ -25,21 +25,17 @@
     "Payment_Behaviour",
     "Monthly_Balance"
   ],
-  "classes": [
-    "Good",
-    "Standard",
-    "Unknown"
-  ],
   "validation_metrics": {
-    "accuracy": 0.9047619047619048,
-    "precision": 0.9365079365079364,
-    "recall": 0.9047619047619048,
-    "f1_score": 0.9047619047619048
+    "accuracy": 0.8,
+    "precision": 0.8666666666666666,
+    "recall": 0.8,
+    "f1_score": 0.8,
+    "auc_roc": 0.0
   },
   "model_params": {
     "bootstrap": true,
     "ccp_alpha": 0.0,
-    "class_weight": "balanced",
+    "class_weight": "balanced_subsample",
     "criterion": "gini",
     "max_depth": 30,
     "max_features": "sqrt",
@@ -51,7 +47,7 @@
     "min_weight_fraction_leaf": 0.0,
     "monotonic_cst": null,
     "n_estimators": 150,
-    "n_jobs": -1,
+    "n_jobs": null,
     "oob_score": false,
     "random_state": 42,
     "verbose": 0,

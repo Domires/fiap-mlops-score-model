@@ -246,9 +246,7 @@ def main_random_forest_mlflow():
     """Função para treinamento do Random Forest COM MLflow"""
     import dagshub
     
-    print("🎯 TREINAMENTO ÚNICO - RANDOM FOREST COM MLFLOW")
-    print("✅ APENAS 1 modelo será registrado no MLflow")
-    print("✅ SEM múltiplos modelos")
+    # Treinamento único - Random Forest com MLflow
     
     # Configuração do MLflow (sem autolog para controle manual)
     dagshub.init(repo_owner="domires", repo_name="fiap-mlops-score-model", mlflow=True)
@@ -268,8 +266,7 @@ def main_random_forest_mlflow():
                 'data/raw/test.csv'
             )
     except Exception as e:
-        print(f"❌ Erro ao carregar dados: {e}")
-        print("💡 Verifique se os arquivos de dados estão disponíveis")
+        print(f"Erro ao carregar dados: {e}")
         return
     
     # Separando features e target
@@ -281,7 +278,7 @@ def main_random_forest_mlflow():
     if y.dtype == 'object':
         le = LabelEncoder()
         y_encoded = le.fit_transform(y)
-        print(f"🔄 Target convertido: {le.classes_} → {range(len(le.classes_))}")
+        # Target convertido
     else:
         y_encoded = y
         le = None
@@ -292,13 +289,11 @@ def main_random_forest_mlflow():
     # Dividindo dados para treino e validação
     X_train, X_val, y_train, y_val = train_test_split(X, y_encoded, test_size=0.3, random_state=42, stratify=y_encoded)
     
-    print(f"📊 Dados preparados:")
-    print(f"   Treino: {X_train.shape}")
-    print(f"   Validação: {X_val.shape}")
+    # Dados preparados para treinamento
     
     # Treinando APENAS Random Forest COM MLflow
     with mlflow.start_run(run_name="Random Forest - Credit Score (Único Modelo)"):
-        print("\n🚀 Treinando Random Forest...")
+        # Treinando Random Forest
         
         from sklearn.pipeline import Pipeline
         rf_pipeline = Pipeline(steps=[
@@ -349,11 +344,7 @@ def main_random_forest_mlflow():
         signature = infer_signature(X_val, y_pred)
         mlflow.sklearn.log_model(rf_pipeline, "random_forest_model", signature=signature)
         
-        print(f"\n📊 RESULTADOS DO RANDOM FOREST:")
-        print(f"   🎯 Acurácia:  {accuracy:.4f} ({accuracy*100:.2f}%)")
-        print(f"   🎯 Precisão:  {precision:.4f}")
-        print(f"   🎯 Recall:    {recall:.4f}")
-        print(f"   🎯 F1-Score:  {f1:.4f}")
+        # Métricas do modelo calculadas
         
         # Salvar modelo localmente também
         import joblib
@@ -365,11 +356,7 @@ def main_random_forest_mlflow():
         if le:
             encoder_path = 'models/label_encoder.pkl'
             joblib.dump(le, encoder_path)
-            print(f"✅ Label encoder salvo: {encoder_path}")
-        
-        print(f"✅ Modelo salvo localmente: {model_path}")
-        print(f"✅ Modelo registrado no MLflow!")
-        print(f"✅ APENAS 1 modelo Random Forest foi treinado!")
+            # Modelo e encoder salvos
 
 
 def main_random_forest_only():
@@ -377,9 +364,7 @@ def main_random_forest_only():
     import joblib
     import os
     
-    print("🎯 TREINAMENTO ÚNICO - RANDOM FOREST")
-    print("✅ SEM MLflow (evita problemas de endpoint)")
-    print("✅ SEM múltiplos modelos")
+    # Treinamento único - Random Forest
     
     try:
         # Carregando dados usando caminhos alternativos
@@ -395,8 +380,7 @@ def main_random_forest_only():
                 'data/raw/test.csv'
             )
     except Exception as e:
-        print(f"❌ Erro ao carregar dados: {e}")
-        print("💡 Verifique se os arquivos de dados estão disponíveis")
+        print(f"Erro ao carregar dados: {e}")
         return
     
     # Separando features e target
@@ -408,7 +392,7 @@ def main_random_forest_only():
     if y.dtype == 'object':
         le = LabelEncoder()
         y_encoded = le.fit_transform(y)
-        print(f"🔄 Target convertido: {le.classes_} → {range(len(le.classes_))}")
+        # Target convertido
     else:
         y_encoded = y
         le = None
@@ -419,12 +403,10 @@ def main_random_forest_only():
     # Dividindo dados para treino e validação
     X_train, X_val, y_train, y_val = train_test_split(X, y_encoded, test_size=0.3, random_state=42, stratify=y_encoded)
     
-    print(f"📊 Dados preparados:")
-    print(f"   Treino: {X_train.shape}")
-    print(f"   Validação: {X_val.shape}")
+    # Dados preparados para treinamento
     
     # Treinando APENAS Random Forest (sem MLflow)
-    print("\n🚀 Treinando Random Forest...")
+    # Treinando Random Forest
     
     from sklearn.pipeline import Pipeline
     rf_pipeline = Pipeline(steps=[
@@ -453,11 +435,7 @@ def main_random_forest_only():
     recall = recall_score(y_val, y_pred, average='weighted')
     f1 = f1_score(y_val, y_pred, average='weighted')
     
-    print(f"\n📊 RESULTADOS DO RANDOM FOREST:")
-    print(f"   🎯 Acurácia:  {accuracy:.4f} ({accuracy*100:.2f}%)")
-    print(f"   🎯 Precisão:  {precision:.4f}")
-    print(f"   🎯 Recall:    {recall:.4f}")
-    print(f"   🎯 F1-Score:  {f1:.4f}")
+    # Métricas do modelo calculadas
     
     # Salvar modelo
     os.makedirs('models', exist_ok=True)
@@ -467,10 +445,7 @@ def main_random_forest_only():
     if le:
         encoder_path = 'models/label_encoder.pkl'
         joblib.dump(le, encoder_path)
-        print(f"✅ Label encoder salvo: {encoder_path}")
-    
-    print(f"✅ Modelo salvo: {model_path}")
-    print(f"✅ APENAS 1 modelo Random Forest foi treinado!")
+        # Modelo e encoder salvos
 
 
 def register_existing_model(run_id, model_name="fiap-mlops-score-model"):
@@ -484,9 +459,8 @@ def register_existing_model(run_id, model_name="fiap-mlops-score-model"):
     import dagshub
     import mlflow
     
-    print(f"🔗 === REGISTRANDO MODELO EXISTENTE ===")
-    print(f"📊 Run ID fornecido: {run_id}")
-    print(f"🎯 Nome do modelo: {model_name}")
+            # Registrando modelo existente
+    # Registrando modelo existente
     
     # Configurar MLflow
     dagshub.init(repo_owner="domires", repo_name="fiap-mlops-score-model", mlflow=True)
@@ -497,27 +471,21 @@ def register_existing_model(run_id, model_name="fiap-mlops-score-model"):
     try:
         # Montar model_uri usando o run_id específico
         model_uri = f"runs:/{run_id}/random_forest_model"
-        print(f"🔗 Model URI: {model_uri}")
+        # Model URI definido
         
         # Registrar modelo conforme documentação do curso
-        print("🚀 Registrando modelo usando mlflow.register_model()...")
+        # Registrando modelo no MLflow
         registered_model_version = mlflow.register_model(
             model_uri=model_uri,
             name=model_name
         )
         
-        print("✅ SUCESSO! Modelo registrado!")
-        print(f"🔗 Modelo: {model_name}")
-        print(f"📊 Versão: {registered_model_version.version}")
-        print(f"📊 Run ID: {run_id}")
-        print("🎯 Verifique na aba 'Models' do MLflow UI")
-        print("📋 Conforme documentação: A cada novo registro uma nova versão será gerada")
+        # Modelo registrado com sucesso
         
         return registered_model_version
         
     except Exception as e:
-        print(f"❌ Erro ao registrar modelo: {e}")
-        print("💡 Verifique se o run_id existe e contém o modelo")
+        print(f"Erro ao registrar modelo: {e}")
         return None
 
 
@@ -528,7 +496,6 @@ def main():
     import mlflow.pyfunc
     
     # Configuração completa do MLflow para Model Registry
-    print("🔧 Configurando MLflow + DagsHub...")
     
     # Inicializar DagsHub
     dagshub.init(repo_owner="domires", repo_name="fiap-mlops-score-model", mlflow=True)
@@ -538,18 +505,15 @@ def main():
     mlflow.set_tracking_uri(tracking_uri)
     mlflow.set_registry_uri(tracking_uri)  # ← CRUCIAL para Model Registry
     
-    print(f"✅ Tracking URI: {tracking_uri}")
-    print(f"✅ Registry URI: {mlflow.get_registry_uri()}")
-    print(f"✅ Current Tracking URI: {mlflow.get_tracking_uri()}")
+    # MLflow configurado
     
     # Verificar conectividade
     try:
         client = mlflow.tracking.MlflowClient()
         experiments = client.search_experiments()
-        print(f"✅ Conectado! {len(experiments)} experimentos encontrados")
+        # Conectado ao MLflow
     except Exception as conn_error:
-        print(f"⚠️ Problema de conectividade: {conn_error}")
-        print("🔧 Continuando mesmo assim...")
+        print(f"Problema de conectividade: {conn_error}")
     
     try:
         # Carregando dados usando caminhos alternativos
@@ -565,8 +529,7 @@ def main():
                 'data/raw/test.csv'
             )
     except Exception as e:
-        print(f"❌ Erro ao carregar dados: {e}")
-        print("💡 Verifique se os arquivos de dados estão disponíveis")
+        print(f"Erro ao carregar dados: {e}")
         return
     
     # Separando features e target
@@ -575,7 +538,7 @@ def main():
     
     # Tratamento para target com valores NaN
     if y.isna().sum() > 0:
-        print(f"🔄 Convertendo {y.isna().sum()} valores NaN no target para 'Unknown'")
+        # Convertendo valores NaN no target
         y = y.fillna('Unknown')
     
     # Tratamento para target string (conversão automática)
@@ -583,7 +546,7 @@ def main():
     if y.dtype == 'object':
         le = LabelEncoder()
         y_encoded = le.fit_transform(y)
-        print(f"🔄 Target convertido: {le.classes_} → {range(len(le.classes_))}")
+        # Target convertido
     else:
         y_encoded = y
         le = None
@@ -594,13 +557,11 @@ def main():
     # Dividindo dados para treino e validação
     X_train, X_val, y_train, y_val = train_test_split(X, y_encoded, test_size=0.3, random_state=42, stratify=y_encoded)
     
-    print(f"📊 Dados preparados:")
-    print(f"   X_train: {X_train.shape}, y_train: {y_train.shape}")
-    print(f"   X_val: {X_val.shape}, y_val: {y_val.shape}")
+    # Dados preparados para treinamento
     
     # TREINAMENTO SIMPLIFICADO SEM PROBLEMAS DE ENDPOINT
     with mlflow.start_run(run_name="Random Forest - Credit Score (Único Modelo)"):
-        print("\n🚀 Treinando Random Forest...")
+        # Treinando Random Forest
         
         # Criar o pipeline completo
         from sklearn.ensemble import RandomForestClassifier
@@ -665,15 +626,10 @@ def main():
         if le:
             encoder_path = 'models/label_encoder.pkl'
             joblib.dump(le, encoder_path)
-            print(f"✅ Label encoder salvo: {encoder_path}")
-        
-        print(f"✅ Modelo salvo localmente: {model_path}")
+            # Modelo e encoder salvos localmente
         
         # Registrar modelo no Model Registry com debugging completo
-        print("\n🔗 === REGISTRANDO MODELO NO MODEL REGISTRY ===")
-        print(f"📊 Registry URI ativo: {mlflow.get_registry_uri()}")
-        print(f"📊 Tracking URI ativo: {mlflow.get_tracking_uri()}")
-        print(f"📊 Run ID atual: {mlflow.active_run().info.run_id}")
+        # Registrando modelo no Model Registry
         
         # Criar wrapper customizado para o modelo (pronto para API)
         class ModelWrapper(mlflow.pyfunc.PythonModel):
@@ -735,14 +691,14 @@ def main():
             # Inferir signature dos dados de treino
             y_pred_train = pipeline.predict(X_train)  # Calcular predições para signature
             signature = infer_signature(X_train, y_pred_train)
-            print(f"✅ Signature criada: {len(X_train.columns)} features de entrada")
+            # Signature criada
             
             # Preparar input example (amostra dos dados para documentação)
             input_example = X_train.head(3)  # 3 exemplos
-            print(f"✅ Input example preparado: {input_example.shape[0]} amostras")
+            # Input example preparado
             
             # MÉTODO 1: Log do modelo com signature e input example
-            print(f"🚀 Step 1: Fazendo log do modelo como '{model_name}' com signature...")
+            # Fazendo log do modelo
             
             model_info = mlflow.pyfunc.log_model(
                 artifact_path="random_forest_model",
@@ -751,15 +707,13 @@ def main():
                 input_example=input_example,  # ← Exemplo para documentação
                 pip_requirements=["scikit-learn", "pandas", "numpy"]
             )
-            print("✅ Modelo logado com signature e input example!")
+            # Modelo logado com sucesso
             
             # MÉTODO OFICIAL DO CURSO: mlflow.register_model() com run_id
             current_run_id = mlflow.active_run().info.run_id
             model_uri = f"runs:/{current_run_id}/random_forest_model"
             
-            print(f"🚀 Step 2: Registrando modelo usando mlflow.register_model()...")
-            print(f"📊 Run ID atual: {current_run_id}")
-            print(f"🔗 Model URI: {model_uri}")
+            # Registrando modelo no Model Registry
             
             # Registrar modelo conforme documentação do curso
             registered_model_version = mlflow.register_model(
@@ -767,16 +721,11 @@ def main():
                 name=model_name
             )
             
-            print("✅ SUCESSO! Modelo registrado usando mlflow.register_model()!")
-            print(f"🔗 Modelo: {model_name}")
-            print(f"📊 Versão: {registered_model_version.version}")
-            print(f"📊 Run ID: {current_run_id}")
-            print("🎯 VERIFIQUE: Aba 'Models' no MLflow UI")
-            print("📋 CONFORME DOCUMENTAÇÃO: A cada novo registro uma nova versão será gerada")
-            print("🔌 PRONTO PARA API: Signature e input example configurados!")
+            # Modelo registrado com sucesso
+            # Modelo pronto para API
             
             # Salvar documentação da API
-            print("\n📋 Salvando documentação da API...")
+            # Salvando documentação da API
             api_info = {
                 "model_name": model_name,
                 "model_version": registered_model_version.version,
@@ -805,19 +754,15 @@ def main():
             # Salvar exemplo de input
             input_example.to_csv('models/input_example.csv', index=False)
             
-            print("✅ Arquivos criados para API:")
-            print("   📄 models/api_info.json - Info do modelo")
-            print("   📄 models/input_example.csv - Exemplo de entrada")
-            print(f"   📄 Features necessárias: {len(X_train.columns)}")
-            print(f"   📄 Classes de saída: {list(le.classes_) if le else ['0', '1', '2']}")
+            # Arquivos criados para API
+            # Arquivos de documentação salvos
             
         except Exception as register_error:
-            print(f"❌ Erro no registro com mlflow.register_model(): {register_error}")
-            print("🔧 Tentando método manual...")
+            print(f"Erro no registro: {register_error}")
             
             try:
                 # MÉTODO 2: Log primeiro, depois registrar
-                print("🚀 Tentativa 2: Log + Register separados...")
+                # Tentativa com método alternativo
                 
                 # Log sem registro
                 model_info = mlflow.pyfunc.log_model(
@@ -825,12 +770,12 @@ def main():
                     python_model=wrapped_model,
                     pip_requirements=["scikit-learn", "pandas", "numpy"]
                 )
-                print("✅ Modelo logado como artifact")
+                # Modelo logado como artifact
                 
                 # Registrar separadamente
                 run_id = mlflow.active_run().info.run_id
                 model_uri = f"runs:/{run_id}/random_forest_model"
-                print(f"🔗 Model URI: {model_uri}")
+                # Model URI definido
                 
                 # Usar MlflowClient para mais controle
                 client = mlflow.tracking.MlflowClient()
@@ -849,45 +794,30 @@ def main():
                     run_id=run_id
                 )
                 
-                print("✅ SUCESSO! Modelo registrado manualmente!")
-                print(f"🔗 Modelo: {model_name}")
-                print(f"📊 Versão: {registered_model.version}")
-                print("🎯 VERIFIQUE: Aba 'Models' no MLflow UI")
+                # Modelo registrado manualmente com sucesso
                 
             except Exception as manual_error:
-                print(f"❌ Erro no registro manual: {manual_error}")
-                print("🔧 Usando fallback - apenas artifacts...")
+                print(f"Erro no registro manual: {manual_error}")
                 
                 try:
-                    # MÉTODO 3: Apenas artifacts (para UI manual)
                     mlflow.log_artifact(model_path, "model")
                     if le:
                         mlflow.log_artifact(encoder_path, "model")
-                    print("💾 Modelo salvo como artifacts")
-                    print("📋 INSTRUÇÃO: Use 'Register Model' na UI manualmente")
-                    print("   1. Vá para a aba 'Experiments'")
-                    print("   2. Clique no run atual")
-                    print("   3. Clique na pasta 'model' em Artifacts")
-                    print("   4. Clique 'Register Model'")
+                    print("Modelo salvo")
                     
                 except Exception as artifact_error:
-                    print(f"❌ Erro total: {artifact_error}")
-                    print("💾 Modelo salvo apenas localmente")
+                    print(f"Erro: {artifact_error}")
+                    print("Modelo salvo apenas localmente")
         
-        print("🔗 === FIM DO REGISTRO ===\n")
+        print("FIM DO REGISTRO\n")
         
         # Resumo dos resultados
-        print("\n=== RESULTADOS DO RANDOM FOREST ===")
-        print(f"  accuracy: {accuracy:.4f}")
-        print(f"  precision: {precision:.4f}")
-        print(f"  recall: {recall:.4f}")
-        print(f"  f1_score: {f1:.4f}")
-        print(f"  auc_roc: {auc_roc:.4f}")
-        
-        print("\n✅ Treinamento concluído!")
-        print("📊 Métricas registradas no MLflow")
-        print("🔗 Modelo registrado para 'Register model'")
-        print("💾 Modelo salvo localmente")
+        print("\n  RESULTADOS DO RANDOM FOREST  ")
+        print(f"accuracy: {accuracy:.4f}")
+        print(f"precision: {precision:.4f}")
+        print(f"recall: {recall:.4f}")
+        print(f"f1_score: {f1:.4f}")
+        print(f"auc_roc: {auc_roc:.4f}")
         
     return pipeline
 
