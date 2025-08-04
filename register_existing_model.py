@@ -23,9 +23,9 @@ if __name__ == "__main__":
     print("🎯 Usando mlflow.register_model() com run_id específico")
     print()
     
-    # Seu run_id específico
-    your_run_id = "054a9cedbf3341f1910b8ff2ee49490a"
-    model_name = "credit_score_random_forest"
+    # Seu run_id específico (ATUALIZADO)
+    your_run_id = "1d7d92097a124cd286d341a369291aa2"  # ← Novo run_id do DagsHub
+    model_name = "fiap-mlops-score-model"
     
     print(f"📊 Run ID: {your_run_id}")
     print(f"🎯 Nome do modelo: {model_name}")

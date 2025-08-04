@@ -473,7 +473,7 @@ def main_random_forest_only():
     print(f"✅ APENAS 1 modelo Random Forest foi treinado!")
 
 
-def register_existing_model(run_id, model_name="credit_score_random_forest"):
+def register_existing_model(run_id, model_name="fiap-mlops-score-model"):
     """
     Registra um modelo existente usando run_id específico conforme documentação do curso
     
@@ -722,7 +722,7 @@ def main():
                     return proba
         
         wrapped_model = ModelWrapper(pipeline, le)
-        model_name = "credit_score_random_forest"
+        model_name = "fiap-mlops-score-model"
         
         try:
             # PREPARAR SIGNATURE E INPUT EXAMPLE PARA API
