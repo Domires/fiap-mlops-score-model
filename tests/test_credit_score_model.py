@@ -6,7 +6,6 @@ Arquivo único com todos os testes essenciais para validar o funcionamento do mo
 
 import joblib
 import pandas as pd
-import numpy
 import json
 import os
 from datetime import datetime
@@ -32,7 +31,7 @@ class TestCreditScoreModel:
         """Teste 1: Carregamento do modelo local"""
         
         print("=" * 80)
-        print("🔍 TESTE 1: CARREGAMENTO DO MODELO LOCAL")
+        print("TESTE 1: CARREGAMENTO DO MODELO LOCAL")
         print("=" * 80)
         
         # Verificar arquivos necessários
