@@ -2,6 +2,8 @@
 Módulo para treinamento de modelos de classificação de credit score.
 """
 
+
+
 import pandas as pd
 import numpy as np
 import mlflow
@@ -599,9 +601,12 @@ def main():
         
         print(f"✅ Modelo salvo localmente: {model_path}")
         
-        # Registrar modelo no MLflow como artifact (compatível com DagsHub)
+        # Registrar modelo seguindo documentação oficial do MLflow
         try:
-            # Método 1: Registrar como pyfunc (mais compatível)
+            # Método 1: Usar registered_model_name conforme documentação
+            # https://www.mlflow.org/docs/latest/ml/model-registry/#adding-an-mlflow-model-to-the-model-registry
+            
+            print("🔗 Registrando modelo conforme documentação MLflow...")
             
             # Criar wrapper customizado para o modelo
             class ModelWrapper(mlflow.pyfunc.PythonModel):
@@ -615,32 +620,58 @@ def main():
             # Criar instância do wrapper
             wrapped_model = ModelWrapper(pipeline, le)
             
-            # Registrar o modelo
-            mlflow.pyfunc.log_model(
+            # MÉTODO OFICIAL: Usar registered_model_name para registrar automaticamente
+            model_info = mlflow.pyfunc.log_model(
                 artifact_path="random_forest_model",
                 python_model=wrapped_model,
+                registered_model_name="credit_score_random_forest",  # ← CHAVE para aparecer "Register Model"
                 pip_requirements=[
                     "scikit-learn",
-                    "pandas",
+                    "pandas", 
                     "numpy"
                 ]
             )
-            print("🔗 Modelo registrado no MLflow como artifact!")
-            print("✅ Agora você pode ver 'Register model' na UI!")
+            print("✅ Modelo registrado automaticamente no Model Registry!")
+            print("🔗 Nome do modelo: 'credit_score_random_forest'")
+            print("📊 Aparecerá na aba 'Models' do MLflow UI")
             
-        except Exception as model_error:
-            print(f"⚠️ Erro ao registrar modelo como artifact: {model_error}")
+        except Exception as auto_register_error:
+            print(f"⚠️ Erro no registro automático: {auto_register_error}")
             print("📊 Tentando método alternativo...")
             
-            # Método 2: Upload do arquivo como artifact simples
+            # Método 2: Log + Register separadamente (conforme documentação)
             try:
-                mlflow.log_artifact(model_path, "model")
-                if le:
-                    mlflow.log_artifact(encoder_path, "model")
-                print("🔗 Modelo enviado como artifact simples!")
-            except Exception as artifact_error:
-                print(f"⚠️ Erro no upload de artifact: {artifact_error}")
-                print("💾 Modelo salvo apenas localmente")
+                # Primeiro: Log do modelo
+                model_info = mlflow.pyfunc.log_model(
+                    artifact_path="random_forest_model", 
+                    python_model=wrapped_model,
+                    pip_requirements=["scikit-learn", "pandas", "numpy"]
+                )
+                
+                # Segundo: Register usando mlflow.register_model
+                model_uri = f"runs:/{mlflow.active_run().info.run_id}/random_forest_model"
+                registered_model = mlflow.register_model(
+                    model_uri=model_uri,
+                    name="credit_score_random_forest"
+                )
+                print("✅ Modelo logado E registrado separadamente!")
+                print(f"🔗 Model URI: {model_uri}")
+                print("📊 Verifique na aba 'Models' do MLflow UI")
+                
+            except Exception as manual_register_error:
+                print(f"⚠️ Erro no registro manual: {manual_register_error}")
+                print("📊 Tentando fallback com artifacts...")
+                
+                # Método 3: Fallback - apenas artifacts
+                try:
+                    mlflow.log_artifact(model_path, "model")
+                    if le:
+                        mlflow.log_artifact(encoder_path, "model") 
+                    print("💾 Modelo salvo como artifact simples")
+                    print("⚠️ Para registrar: use a UI do MLflow manualmente")
+                except Exception as artifact_error:
+                    print(f"❌ Erro total: {artifact_error}")
+                    print("💾 Modelo salvo apenas localmente")
         
         # Resumo dos resultados
         print("\n=== RESULTADOS DO RANDOM FOREST ===")
