@@ -473,15 +473,83 @@ def main_random_forest_only():
     print(f"✅ APENAS 1 modelo Random Forest foi treinado!")
 
 
+def register_existing_model(run_id, model_name="credit_score_random_forest"):
+    """
+    Registra um modelo existente usando run_id específico conforme documentação do curso
+    
+    Args:
+        run_id (str): ID do run que contém o modelo (ex: "054a9cedbf3341f1910b8ff2ee49490a")
+        model_name (str): Nome para registrar o modelo
+    """
+    import dagshub
+    import mlflow
+    
+    print(f"🔗 === REGISTRANDO MODELO EXISTENTE ===")
+    print(f"📊 Run ID fornecido: {run_id}")
+    print(f"🎯 Nome do modelo: {model_name}")
+    
+    # Configurar MLflow
+    dagshub.init(repo_owner="domires", repo_name="fiap-mlops-score-model", mlflow=True)
+    tracking_uri = "https://dagshub.com/domires/fiap-mlops-score-model.mlflow"
+    mlflow.set_tracking_uri(tracking_uri)
+    mlflow.set_registry_uri(tracking_uri)
+    
+    try:
+        # Montar model_uri usando o run_id específico
+        model_uri = f"runs:/{run_id}/random_forest_model"
+        print(f"🔗 Model URI: {model_uri}")
+        
+        # Registrar modelo conforme documentação do curso
+        print("🚀 Registrando modelo usando mlflow.register_model()...")
+        registered_model_version = mlflow.register_model(
+            model_uri=model_uri,
+            name=model_name
+        )
+        
+        print("✅ SUCESSO! Modelo registrado!")
+        print(f"🔗 Modelo: {model_name}")
+        print(f"📊 Versão: {registered_model_version.version}")
+        print(f"📊 Run ID: {run_id}")
+        print("🎯 Verifique na aba 'Models' do MLflow UI")
+        print("📋 Conforme documentação: A cada novo registro uma nova versão será gerada")
+        
+        return registered_model_version
+        
+    except Exception as e:
+        print(f"❌ Erro ao registrar modelo: {e}")
+        print("💡 Verifique se o run_id existe e contém o modelo")
+        return None
+
+
 def main():
     """Função principal para treinamento APENAS do Random Forest com MLflow simplificado"""
     import dagshub
     import mlflow
     import mlflow.pyfunc
     
-    # Configuração do MLflow
+    # Configuração completa do MLflow para Model Registry
+    print("🔧 Configurando MLflow + DagsHub...")
+    
+    # Inicializar DagsHub
     dagshub.init(repo_owner="domires", repo_name="fiap-mlops-score-model", mlflow=True)
-    mlflow.set_tracking_uri("https://dagshub.com/domires/fiap-mlops-score-model.mlflow")
+    
+    # Configurar URIs para tracking E registry
+    tracking_uri = "https://dagshub.com/domires/fiap-mlops-score-model.mlflow"
+    mlflow.set_tracking_uri(tracking_uri)
+    mlflow.set_registry_uri(tracking_uri)  # ← CRUCIAL para Model Registry
+    
+    print(f"✅ Tracking URI: {tracking_uri}")
+    print(f"✅ Registry URI: {mlflow.get_registry_uri()}")
+    print(f"✅ Current Tracking URI: {mlflow.get_tracking_uri()}")
+    
+    # Verificar conectividade
+    try:
+        client = mlflow.tracking.MlflowClient()
+        experiments = client.search_experiments()
+        print(f"✅ Conectado! {len(experiments)} experimentos encontrados")
+    except Exception as conn_error:
+        print(f"⚠️ Problema de conectividade: {conn_error}")
+        print("🔧 Continuando mesmo assim...")
     
     try:
         # Carregando dados usando caminhos alternativos
@@ -601,77 +669,212 @@ def main():
         
         print(f"✅ Modelo salvo localmente: {model_path}")
         
-        # Registrar modelo seguindo documentação oficial do MLflow
-        try:
-            # Método 1: Usar registered_model_name conforme documentação
-            # https://www.mlflow.org/docs/latest/ml/model-registry/#adding-an-mlflow-model-to-the-model-registry
+        # Registrar modelo no Model Registry com debugging completo
+        print("\n🔗 === REGISTRANDO MODELO NO MODEL REGISTRY ===")
+        print(f"📊 Registry URI ativo: {mlflow.get_registry_uri()}")
+        print(f"📊 Tracking URI ativo: {mlflow.get_tracking_uri()}")
+        print(f"📊 Run ID atual: {mlflow.active_run().info.run_id}")
+        
+        # Criar wrapper customizado para o modelo (pronto para API)
+        class ModelWrapper(mlflow.pyfunc.PythonModel):
+            def __init__(self, model, label_encoder=None):
+                self.model = model
+                self.label_encoder = label_encoder
             
-            print("🔗 Registrando modelo conforme documentação MLflow...")
-            
-            # Criar wrapper customizado para o modelo
-            class ModelWrapper(mlflow.pyfunc.PythonModel):
-                def __init__(self, model, label_encoder=None):
-                    self.model = model
-                    self.label_encoder = label_encoder
+            def predict(self, context, model_input):
+                """
+                Predição para API de Credit Score
                 
-                def predict(self, context, model_input):
-                    return self.model.predict(model_input)
+                Input: DataFrame com features do cliente
+                Output: Array com predições (Good, Standard, Unknown)
+                """
+                # Fazer predição numérica
+                predictions = self.model.predict(model_input)
+                
+                # Converter de volta para labels legíveis se tiver label encoder
+                if self.label_encoder:
+                    try:
+                        # Converter predições numéricas para strings originais
+                        readable_predictions = self.label_encoder.inverse_transform(predictions)
+                        return readable_predictions
+                    except Exception:
+                        # Se falhar, retornar predições numéricas
+                        return predictions
+                
+                return predictions
             
-            # Criar instância do wrapper
-            wrapped_model = ModelWrapper(pipeline, le)
+            def predict_proba(self, context, model_input):
+                """
+                Probabilidades para cada classe (se disponível)
+                """
+                if hasattr(self.model, 'predict_proba'):
+                    return self.model.predict_proba(model_input)
+                else:
+                    # Se não tiver predict_proba, retornar predições binárias
+                    predictions = self.predict(context, model_input)
+                    # Simular probabilidades (1.0 para classe predita, 0.0 para outras)
+                    import numpy as np
+                    n_samples = len(predictions)
+                    n_classes = len(np.unique(predictions))
+                    proba = np.zeros((n_samples, n_classes))
+                    for i, pred in enumerate(predictions):
+                        proba[i, pred] = 1.0
+                    return proba
+        
+        wrapped_model = ModelWrapper(pipeline, le)
+        model_name = "credit_score_random_forest"
+        
+        try:
+            # PREPARAR SIGNATURE E INPUT EXAMPLE PARA API
+            print("🔧 Preparando signature e input example para API...")
             
-            # MÉTODO OFICIAL: Usar registered_model_name para registrar automaticamente
+            # Criar signature do modelo (tipos de entrada e saída)
+            import mlflow.types
+            from mlflow.models.signature import infer_signature
+            
+            # Inferir signature dos dados de treino
+            y_pred_train = pipeline.predict(X_train)  # Calcular predições para signature
+            signature = infer_signature(X_train, y_pred_train)
+            print(f"✅ Signature criada: {len(X_train.columns)} features de entrada")
+            
+            # Preparar input example (amostra dos dados para documentação)
+            input_example = X_train.head(3)  # 3 exemplos
+            print(f"✅ Input example preparado: {input_example.shape[0]} amostras")
+            
+            # MÉTODO 1: Log do modelo com signature e input example
+            print(f"🚀 Step 1: Fazendo log do modelo como '{model_name}' com signature...")
+            
             model_info = mlflow.pyfunc.log_model(
                 artifact_path="random_forest_model",
                 python_model=wrapped_model,
-                registered_model_name="credit_score_random_forest",  # ← CHAVE para aparecer "Register Model"
-                pip_requirements=[
-                    "scikit-learn",
-                    "pandas", 
-                    "numpy"
-                ]
+                signature=signature,  # ← CRUCIAL para API
+                input_example=input_example,  # ← Exemplo para documentação
+                pip_requirements=["scikit-learn", "pandas", "numpy"]
             )
-            print("✅ Modelo registrado automaticamente no Model Registry!")
-            print("🔗 Nome do modelo: 'credit_score_random_forest'")
-            print("📊 Aparecerá na aba 'Models' do MLflow UI")
+            print("✅ Modelo logado com signature e input example!")
             
-        except Exception as auto_register_error:
-            print(f"⚠️ Erro no registro automático: {auto_register_error}")
-            print("📊 Tentando método alternativo...")
+            # MÉTODO OFICIAL DO CURSO: mlflow.register_model() com run_id
+            current_run_id = mlflow.active_run().info.run_id
+            model_uri = f"runs:/{current_run_id}/random_forest_model"
             
-            # Método 2: Log + Register separadamente (conforme documentação)
+            print(f"🚀 Step 2: Registrando modelo usando mlflow.register_model()...")
+            print(f"📊 Run ID atual: {current_run_id}")
+            print(f"🔗 Model URI: {model_uri}")
+            
+            # Registrar modelo conforme documentação do curso
+            registered_model_version = mlflow.register_model(
+                model_uri=model_uri,
+                name=model_name
+            )
+            
+            print("✅ SUCESSO! Modelo registrado usando mlflow.register_model()!")
+            print(f"🔗 Modelo: {model_name}")
+            print(f"📊 Versão: {registered_model_version.version}")
+            print(f"📊 Run ID: {current_run_id}")
+            print("🎯 VERIFIQUE: Aba 'Models' no MLflow UI")
+            print("📋 CONFORME DOCUMENTAÇÃO: A cada novo registro uma nova versão será gerada")
+            print("🔌 PRONTO PARA API: Signature e input example configurados!")
+            
+            # Salvar documentação da API
+            print("\n📋 Salvando documentação da API...")
+            api_info = {
+                "model_name": model_name,
+                "model_version": registered_model_version.version,
+                "run_id": current_run_id,
+                "model_uri": model_uri,
+                "features": list(X_train.columns),
+                "feature_count": len(X_train.columns),
+                "classes": list(le.classes_) if le else ["0", "1", "2"],
+                "input_shape": list(X_train.shape),
+                "signature": str(signature),
+                "api_usage": {
+                    "load_model": f"mlflow.pyfunc.load_model('models:/{model_name}/{registered_model_version.version}')",
+                    "predict": "model.predict(input_data)",
+                    "predict_proba": "model.predict_proba(input_data) # se disponível"
+                }
+            }
+            
+            # Salvar informações da API em JSON
+            import json
+            import os
+            os.makedirs('models', exist_ok=True)
+            
+            with open('models/api_info.json', 'w', encoding='utf-8') as f:
+                json.dump(api_info, f, indent=2, ensure_ascii=False)
+            
+            # Salvar exemplo de input
+            input_example.to_csv('models/input_example.csv', index=False)
+            
+            print("✅ Arquivos criados para API:")
+            print("   📄 models/api_info.json - Info do modelo")
+            print("   📄 models/input_example.csv - Exemplo de entrada")
+            print(f"   📄 Features necessárias: {len(X_train.columns)}")
+            print(f"   📄 Classes de saída: {list(le.classes_) if le else ['0', '1', '2']}")
+            
+        except Exception as register_error:
+            print(f"❌ Erro no registro com mlflow.register_model(): {register_error}")
+            print("🔧 Tentando método manual...")
+            
             try:
-                # Primeiro: Log do modelo
+                # MÉTODO 2: Log primeiro, depois registrar
+                print("🚀 Tentativa 2: Log + Register separados...")
+                
+                # Log sem registro
                 model_info = mlflow.pyfunc.log_model(
-                    artifact_path="random_forest_model", 
+                    artifact_path="random_forest_model",
                     python_model=wrapped_model,
                     pip_requirements=["scikit-learn", "pandas", "numpy"]
                 )
+                print("✅ Modelo logado como artifact")
                 
-                # Segundo: Register usando mlflow.register_model
-                model_uri = f"runs:/{mlflow.active_run().info.run_id}/random_forest_model"
-                registered_model = mlflow.register_model(
-                    model_uri=model_uri,
-                    name="credit_score_random_forest"
-                )
-                print("✅ Modelo logado E registrado separadamente!")
+                # Registrar separadamente
+                run_id = mlflow.active_run().info.run_id
+                model_uri = f"runs:/{run_id}/random_forest_model"
                 print(f"🔗 Model URI: {model_uri}")
-                print("📊 Verifique na aba 'Models' do MLflow UI")
                 
-            except Exception as manual_register_error:
-                print(f"⚠️ Erro no registro manual: {manual_register_error}")
-                print("📊 Tentando fallback com artifacts...")
+                # Usar MlflowClient para mais controle
+                client = mlflow.tracking.MlflowClient()
                 
-                # Método 3: Fallback - apenas artifacts
+                # Verificar se o modelo já existe
                 try:
+                    existing_model = client.get_registered_model(model_name)
+                    print(f"📋 Modelo '{model_name}' já existe, adicionando nova versão...")
+                except Exception:
+                    print(f"📋 Criando novo modelo '{model_name}'...")
+                
+                # Registrar no Model Registry
+                registered_model = client.create_model_version(
+                    name=model_name,
+                    source=model_uri,
+                    run_id=run_id
+                )
+                
+                print("✅ SUCESSO! Modelo registrado manualmente!")
+                print(f"🔗 Modelo: {model_name}")
+                print(f"📊 Versão: {registered_model.version}")
+                print("🎯 VERIFIQUE: Aba 'Models' no MLflow UI")
+                
+            except Exception as manual_error:
+                print(f"❌ Erro no registro manual: {manual_error}")
+                print("🔧 Usando fallback - apenas artifacts...")
+                
+                try:
+                    # MÉTODO 3: Apenas artifacts (para UI manual)
                     mlflow.log_artifact(model_path, "model")
                     if le:
-                        mlflow.log_artifact(encoder_path, "model") 
-                    print("💾 Modelo salvo como artifact simples")
-                    print("⚠️ Para registrar: use a UI do MLflow manualmente")
+                        mlflow.log_artifact(encoder_path, "model")
+                    print("💾 Modelo salvo como artifacts")
+                    print("📋 INSTRUÇÃO: Use 'Register Model' na UI manualmente")
+                    print("   1. Vá para a aba 'Experiments'")
+                    print("   2. Clique no run atual")
+                    print("   3. Clique na pasta 'model' em Artifacts")
+                    print("   4. Clique 'Register Model'")
+                    
                 except Exception as artifact_error:
                     print(f"❌ Erro total: {artifact_error}")
                     print("💾 Modelo salvo apenas localmente")
+        
+        print("🔗 === FIM DO REGISTRO ===\n")
         
         # Resumo dos resultados
         print("\n=== RESULTADOS DO RANDOM FOREST ===")
