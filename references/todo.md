@@ -19,10 +19,9 @@ Repositórios de referência para consulta:
 - https://github.com/michelpf/fiap-ds-mlops-laptop-pricing-model-drift
 
 Observações:
-- Por enquanto iremos focar somente no modelo, e não no front-end e nem no back-end (API)
+- Por enquanto iremos focar somente no modelo e no back-end (API), e não no front-end
 - O Modelo será um modelo de classificação de score de crédito
-- Podem existir arquivos com prefixo "ref_", isso significa que são somente arquivos que foram usados para outro propósito, mas podem servir como referência para a construção desse trabalho
-- Na pasta references existem arquivos de referência para construção do trabalho 
+- Na pasta references do modelo, existem arquivos de referência para construção do trabalho 
 
 Dataset à ser utilizado no trabalho de MLOPS:
 - https://www.kaggle.com/datasets/parisrohan/credit-score-classification

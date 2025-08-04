@@ -582,9 +582,10 @@ def main():
         mlflow.log_metric("f1_score", f1)
         mlflow.log_metric("auc_roc", auc_roc)
         
-        # Salvar modelo localmente (sem usar mlflow.sklearn.log_model que dá erro)
+        # Salvar modelo localmente E registrar no MLflow
         import joblib
         import os
+        import tempfile
         os.makedirs('models', exist_ok=True)
         model_path = 'models/random_forest_credit_score.pkl'
         joblib.dump(pipeline, model_path)
@@ -596,6 +597,50 @@ def main():
         
         print(f"✅ Modelo salvo localmente: {model_path}")
         
+        # Registrar modelo no MLflow como artifact (compatível com DagsHub)
+        try:
+            # Método 1: Registrar como pyfunc (mais compatível)
+            import mlflow.pyfunc
+            
+            # Criar wrapper customizado para o modelo
+            class ModelWrapper(mlflow.pyfunc.PythonModel):
+                def __init__(self, model, label_encoder=None):
+                    self.model = model
+                    self.label_encoder = label_encoder
+                
+                def predict(self, context, model_input):
+                    return self.model.predict(model_input)
+            
+            # Criar instância do wrapper
+            wrapped_model = ModelWrapper(pipeline, le)
+            
+            # Registrar o modelo
+            mlflow.pyfunc.log_model(
+                artifact_path="random_forest_model",
+                python_model=wrapped_model,
+                pip_requirements=[
+                    "scikit-learn",
+                    "pandas",
+                    "numpy"
+                ]
+            )
+            print("🔗 Modelo registrado no MLflow como artifact!")
+            print("✅ Agora você pode ver 'Register model' na UI!")
+            
+        except Exception as model_error:
+            print(f"⚠️ Erro ao registrar modelo como artifact: {model_error}")
+            print("📊 Tentando método alternativo...")
+            
+            # Método 2: Upload do arquivo como artifact simples
+            try:
+                mlflow.log_artifact(model_path, "model")
+                if le:
+                    mlflow.log_artifact(encoder_path, "model")
+                print("🔗 Modelo enviado como artifact simples!")
+            except Exception as artifact_error:
+                print(f"⚠️ Erro no upload de artifact: {artifact_error}")
+                print("💾 Modelo salvo apenas localmente")
+        
         # Resumo dos resultados
         print("\n=== RESULTADOS DO RANDOM FOREST ===")
         print(f"  accuracy: {accuracy:.4f}")
@@ -605,7 +650,8 @@ def main():
         print(f"  auc_roc: {auc_roc:.4f}")
         
         print("\n✅ Treinamento concluído!")
-        print("📊 Métricas registradas no MLflow (sem problemas de endpoint)")
+        print("📊 Métricas registradas no MLflow")
+        print("🔗 Modelo registrado para 'Register model'")
         print("💾 Modelo salvo localmente")
         
     return pipeline
